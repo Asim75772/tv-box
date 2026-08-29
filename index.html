@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0b0f">
+<meta name="description" content="TV BOX - Live TV">
+<title>TV BOX</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  background:#08090d;
+  color:#fff;
+  min-height:100vh;
+}
+
+/* HEADER */
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#0d0f15;
+  border-bottom:1px solid #20232d;
+  padding:14px 18px;
+}
+
+.header{
+  max-width:1200px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+
+.logo{
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+.search{
+  flex:1;
+  max-width:420px;
+}
+
+.search input{
+  width:100%;
+  background:#171a22;
+  border:1px solid #292d38;
+  color:#fff;
+  padding:11px 15px;
+  border-radius:25px;
+  outline:none;
+}
+
+.search input:focus{
+  border-color:#666;
+}
+
+/* CATEGORY */
+.categories{
+  max-width:1200px;
+  margin:18px auto;
+  padding:0 18px;
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+}
+
+.categories button{
+  flex:none;
+  border:0;
+  background:#171a22;
+  color:#ddd;
+  padding:10px 16px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+.categories button.active,
+.categories button:hover{
+  background:#fff;
+  color:#000;
+}
+
+/* PLAYER */
+.player-section{
+  max-width:1200px;
+  margin:0 auto 25px;
+  padding:0 18px;
+}
+
+.player{
+  background:#000;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid #20232d;
+  aspect-ratio:16/9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+.player-message{
+  position:absolute;
+  text-align:center;
+  color:#aaa;
+  padding:20px;
+}
+
+.player-message h2{
+  color:#fff;
+  margin-bottom:8px;
+}
+
+/* CHANNELS */
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:0 18px 40px;
+}
+
+.section-title{
+  font-size:20px;
+  margin-bottom:15px;
+}
+
+.channels{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;
+}
+
+.channel{
+  background:#11131a;
+  border:1px solid #20232d;
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.channel:hover{
+  transform:translateY(-3px);
+  border-color:#555;
+}
+
+.channel-logo{
+  height:100px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#181b23;
+  font-size:27px;
+  font-weight:800;
+}
+
+.channel-info{
+  padding:12px;
+}
+
+.channel-name{
+  font-weight:700;
+  margin-bottom:5px;
+}
+
+.channel-category{
+  color:#888;
+  font-size:12px;
+}
+
+.live{
+  display:inline-block;
+  margin-top:8px;
+  font-size:11px;
+  padding:4px 7px;
+  border-radius:5px;
+  background:#272b35;
+  color:#ddd;
+}
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:50px 10px;
+  color:#888;
+}
+
+/* FOOTER */
+footer{
+  text-align:center;
+  color:#666;
+  border-top:1px solid #20232d;
+  padding:25px 15px;
+  font-size:13px;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .header{
+    flex-wrap:wrap;
+  }
+
+  .logo{
+    font-size:20px;
+  }
+
+  .search{
+    order:3;
+    max-width:none;
+    flex-basis:100%;
+  }
+
+  .channels{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+
+  .channel-logo{
+    height:85px;
+    font-size:22px;
+  }
+
+  .channel-info{
+    padding:10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header">
+
+    <div class="logo">TV BOX</div>
+
+    <div class="search">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search channel..."
+        oninput="searchChannels()"
+      >
+    </div>
+
+  </div>
+</header>
+
+<div class="categories">
+  <button class="active" onclick="filterCategory('All',this)">All</button>
+  <button onclick="filterCategory('Bengali News',this)">বাংলা News</button>
+  <button onclick="filterCategory('Hindi News',this)">Hindi News</button>
+  <button onclick="filterCategory('Bengali Music',this)">বাংলা Music</button>
+  <button onclick="filterCategory('Hindi Music',this)">Hindi Music</button>
+  <button onclick="filterCategory('Movies',this)">Movies</button>
+</div>
+
+<section class="player-section">
+
+  <div class="player">
+
+    <video id="videoPlayer" controls playsinline></video>
+
+    <div class="player-message" id="playerMessage">
+      <h2>▶ Select a channel</h2>
+      <p>Choose a channel below to start watching.</p>
+    </div>
+
+  </div>
+
+</section>
+
+<main class="container">
+
+  <h2 class="section-title">Live Channels</h2>
+
+  <div class="channels" id="channelList"></div>
+
+  <div class="empty" id="emptyMessage" style="display:none;">
+    No channel found.
+  </div>
+
+</main>
+
+<footer>
+  TV BOX
+</footer>
+
+
+<script>
+
+/*
+  TV BOX CHANNEL DATA
+
+  IMPORTANT:
+  Replace "stream" only with an authorised
+  live stream URL that you are permitted to use.
+
+  Example:
+  stream: "https://your-authorised-domain.com/live.m3u8"
+*/
+
+const channels = [
+
+  {
+    name:"ABP Ananda",
+    category:"Bengali News",
+    logo:"ABP",
+    stream:""
+  },
+
+  {
+    name:"TV9 Bangla",
+    category:"Bengali News",
+    logo:"TV9",
+    stream:""
+  },
+
+  {
+    name:"News18 Bangla",
+    category:"Bengali News",
+    logo:"18",
+    stream:""
+  },
+
+  {
+    name:"Zee 24 Ghanta",
+    category:"Bengali News",
+    logo:"ZEE",
+    stream:""
+  },
+
+  {
+    name:"ABP News",
+    category:"Hindi News",
+    logo:"ABP",
+    stream:""
+  },
+
+  {
+    name:"Aaj Tak",
+    category:"Hindi News",
+    logo:"आज",
+    stream:""
+  },
+
+  {
+    name:"News18 India",
+    category:"Hindi News",
+    logo:"18",
+    stream:""
+  },
+
+  {
+    name:"DD News",
+    category:"Hindi News",
+    logo:"DD",
+    stream:""
+  },
+
+  {
+    name:"Sangeet Bangla",
+    category:"Bengali Music",
+    logo:"♫",
+    stream:""
+  },
+
+  {
+    name:"Dhoom Music",
+    category:"Bengali Music",
+    logo:"♪",
+    stream:""
+  },
+
+  {
+    name:"9XM",
+    category:"Hindi Music",
+    logo:"9XM",
+    stream:""
+  },
+
+  {
+    name:"B4U Music",
+    category:"Hindi Music",
+    logo:"B4U",
+    stream:""
+  },
+
+  {
+    name:"Music India",
+    category:"Hindi Music",
+    logo:"MI",
+    stream:""
+  },
+
+  {
+    name:"B4U Movies",
+    category:"Movies",
+    logo:"B4U",
+    stream:""
+  },
+
+  {
+    name:"Goldmines",
+    category:"Movies",
+    logo:"GM",
+    stream:""
+  },
+
+  {
+    name:"Sony Wah",
+    category:"Movies",
+    logo:"SONY",
+    stream:""
+  },
+
+  {
+    name:"Shemaroo TV",
+    category:"Movies",
+    logo:"S",
+    stream:""
+  }
+
+];
+
+
+let selectedCategory = "All";
+
+
+function displayChannels(list){
+
+  const container = document.getElementById("channelList");
+  const empty = document.getElementById("emptyMessage");
+
+  container.innerHTML = "";
+
+  if(list.length === 0){
+    empty.style.display = "block";
+    return;
+  }
+
+  empty.style.display = "none";
+
+  list.forEach((channel,index)=>{
+
+    const card = document.createElement("div");
+
+    card.className = "channel";
+
+    card.innerHTML = `
+
+      <div class="channel-logo">
+        ${channel.logo}
+      </div>
+
+      <div class="channel-info">
+
+        <div class="channel-name">
+          ${channel.name}
+        </div>
+
+        <div class="channel-category">
+          ${channel.category}
+        </div>
+
+        <span class="live">
+          ● LIVE
+        </span>
+
+      </div>
+
+    `;
+
+    card.onclick = () => playChannel(channel);
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+function playChannel(channel){
+
+  const video = document.getElementById("videoPlayer");
+  const message = document.getElementById("playerMessage");
+
+  if(!channel.stream){
+
+    message.style.display = "block";
+
+    message.innerHTML = `
+      <h2>${channel.name}</h2>
+      <p>Official live stream will be added here.</p>
+    `;
+
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+
+    return;
+  }
+
+  message.style.display = "none";
+
+  video.src = channel.stream;
+
+  video.play().catch(()=>{
+    console.log("Playback requires user interaction.");
+  });
+
+}
+
+
+function filterCategory(category,button){
+
+  selectedCategory = category;
+
+  document.querySelectorAll(".categories button")
+    .forEach(btn=>btn.classList.remove("active"));
+
+  button.classList.add("active");
+
+  searchChannels();
+
+}
+
+
+function searchChannels(){
+
+  const search = document
+    .getElementById("searchInput")
+    .value
+    .toLowerCase()
+    .trim();
+
+  let filtered = channels.filter(channel=>{
+
+    const matchesCategory =
+      selectedCategory === "All" ||
+      channel.category === selectedCategory;
+
+    const matchesSearch =
+      channel.name.toLowerCase().includes(search) ||
+      channel.category.toLowerCase().includes(search);
+
+    return matchesCategory && matchesSearch;
+
+  });
+
+  displayChannels(filtered);
+
+}
+
+
+displayChannels(channels);
+
+</script>
+
+</body>
+</html>
